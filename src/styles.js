@@ -15,8 +15,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontWeight: 'bold',
     textAlign: 'center',
+    fontSize: 15,
   },
   columnRowTxt: {
+    fontSize: 15,
     flex: 1,
     textAlign: 'center',
   },
@@ -26,7 +28,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 10,
     width: '100%',
-    height: '100"',
   },
   tableHeader: {
     flexDirection: 'row',
@@ -50,7 +51,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     backgroundColor: 'white',
-    padding: 100,
+    padding: 80,
   },
   profileContainer: {
     alignItems: 'center',
@@ -126,9 +127,21 @@ const styles = StyleSheet.create({
   itemContainer: {
     marginBottom: 10,
   },
-  profileColumnRowTxt: {
+  profileRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 5,
+    marginHorizontal: 10,
+  },
+  profileColumnRowLabel: {
+    fontWeight: 'bold',
     fontSize: 18,
-    marginBottom: 5,
+    marginRight: 10,
+  },
+  profileColumnRowValue: {
+    flex: 1,
+    textAlign: 'right',
+    fontSize: 18,
   },
   selectList: {
     width: '100%',
@@ -152,6 +165,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 10,
+  },
+  singleButton: {
+    width: 80,
+    marginHorizontal: 10,
+  },
+  buttonsProfileContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    marginBottom: 300,
+  },
+  singleProfileButton: {
+    width: 160,
+    marginHorizontal: 10,
   },
 });
 

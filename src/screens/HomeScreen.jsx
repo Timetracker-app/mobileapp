@@ -106,7 +106,6 @@ const HomeScreen = ({navigation}) => {
   };
 
   const addWork = () => {
-    // Save changes logic here (e.g., update the item in the state or send it to a server)
     const data = {
       ime: user,
       projekt: project,
@@ -214,8 +213,20 @@ const HomeScreen = ({navigation}) => {
               />
             </View>
             <View style={styles.buttonsContainer}>
-              <Button title="Add" onPress={addWork} color="#deb887" />
-              <Button title="Cancel" onPress={() => setModalVisible(false)} />
+              <View style={styles.singleButton}>
+                <Button title="Add" onPress={addWork} color="#deb887" />
+              </View>
+              <View style={styles.singleButton}>
+                <Button
+                  title="Cancel"
+                  onPress={() => setModalVisible(false)}
+                  titleStyle={{
+                    color: '#000000',
+                    fontSize: 30,
+                    fontStyle: 'italic',
+                  }}
+                />
+              </View>
             </View>
           </View>
         </View>

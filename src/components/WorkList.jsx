@@ -265,17 +265,7 @@ const WorkList = () => {
                 style={styles.dateTimeButton}
                 onPress={() => setStartTimeOpen(true)}>
                 <Text>
-                  {startTime
-                    ? `${startTime.toDateString()} ${
-                        startTime
-                          .toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false,
-                          })
-                          .split(' ')[0]
-                      }`
-                    : 'Select Start DateTime'}
+                  {startTime ? formatDate(startTime) : 'Select Start DateTime'}
                 </Text>
               </TouchableOpacity>
               <DatePicker
@@ -296,17 +286,7 @@ const WorkList = () => {
                 style={styles.dateTimeButton}
                 onPress={() => setEndTimeOpen(true)}>
                 <Text>
-                  {endTime
-                    ? `${endTime.toDateString()} ${
-                        endTime
-                          .toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false,
-                          })
-                          .split(' ')[0]
-                      }`
-                    : 'Select End DateTime'}
+                  {endTime ? formatDate(endTime) : 'Select End DateTime'}
                 </Text>
               </TouchableOpacity>
               <DatePicker
@@ -323,9 +303,15 @@ const WorkList = () => {
               />
             </View>
             <View style={styles.buttonsContainer}>
-              <Button title="Edit" onPress={editWork} color="#deb887" />
-              <Button title="Delete" onPress={deleteWork} color="#ff6347" />
-              <Button title="Cancel" onPress={() => setModalVisible(false)} />
+              <View style={styles.singleButton}>
+                <Button title="Edit" onPress={editWork} color="#deb887" />
+              </View>
+              <View style={styles.singleButton}>
+                <Button title="Delete" onPress={deleteWork} color="#ff6347" />
+              </View>
+              <View style={styles.singleButton}>
+                <Button title="Cancel" onPress={() => setModalVisible(false)} />
+              </View>
             </View>
           </View>
         </View>
