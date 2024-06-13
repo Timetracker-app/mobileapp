@@ -12,51 +12,114 @@ import {
 } from 'react-native';
 import {SelectList} from 'react-native-dropdown-select-list';
 import DatePicker from 'react-native-date-picker';
+import {AuthContext} from '../features/AuthContext';
 
 import styles from '../styles';
-import {formatDate} from '../utils';
+import {formatDate, formatDateTime} from '../utils';
 
-import useToken from '../features/useToken';
 import {customFetch} from '../utils';
 const url = '/work';
 
 const WorkList = () => {
-  const {token, user, loading} = useToken();
+  const {userToken, user} = React.useContext(AuthContext);
 
-  console.log(user);
-  console.log(token);
-
-  const [data, setData] = useState();
+  const [workData, setWorkData] = useState();
+  const [projectData, setProjectData] = useState();
+  const [workplaceData, setWorkplaceData] = useState();
 
   useEffect(() => {
-    customFetch
-      .get(url, {
-        params: {
-          worker: user,
-          project: '',
-          workplace: '',
-          starttime: '',
-          endtime: '',
-        },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then(response => {
-        if (response.data) {
-          setData(response.data.result);
-        } else {
+    const fetchProjects = async () => {
+      customFetch
+        .get('/project', {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        })
+        .then(response => {
+          if (response.data) {
+            const projectResponse = response.data.result;
+            const filteredProjects = [
+              ...new Set(
+                projectResponse
+                  .filter(item => item.status === 1)
+                  .map(item => item.projekt),
+              ),
+            ];
+            setProjectData(filteredProjects);
+          } else {
+            ToastAndroid.show('No projects found', ToastAndroid.SHORT);
+            console.log('No projects found...');
+          }
+        })
+        .catch(error => {
+          console.log(error);
+          ToastAndroid.show('No projects found', ToastAndroid.SHORT);
+        });
+    };
+
+    const fetchWorkplaces = async () => {
+      customFetch
+        .get('/workplace', {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        })
+        .then(response => {
+          if (response.data) {
+            const workplaceResponse = response.data.result;
+            const filteredWorkplaces = [
+              ...new Set(
+                workplaceResponse
+                  .filter(item => item.status === 1)
+                  .map(item => item.stroj),
+              ),
+            ];
+            setWorkplaceData(filteredWorkplaces);
+          } else {
+            ToastAndroid.show('No workplaces found', ToastAndroid.SHORT);
+            console.log('No workplaces found...');
+          }
+        })
+        .catch(error => {
+          console.log(error);
+          ToastAndroid.show('No workplaces found', ToastAndroid.SHORT);
+        });
+    };
+    const fetchWork = async () => {
+      customFetch
+        .get(url, {
+          params: {
+            worker: user,
+            project: '',
+            workplace: '',
+            starttime: '',
+            endtime: '',
+          },
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        })
+        .then(response => {
+          if (response.data) {
+            const responseData = response.data.result;
+            setWorkData([...responseData].reverse());
+          } else {
+            ToastAndroid.show('No work found', ToastAndroid.SHORT);
+            console.log('No work found...');
+          }
+        })
+        .catch(error => {
+          console.log(error);
           ToastAndroid.show('No work found', ToastAndroid.SHORT);
-          console.log('No work found...');
-        }
-      })
-      .catch(error => {
-        console.log(error);
-        ToastAndroid.show('No work found', ToastAndroid.SHORT);
-      });
+        });
+    };
+    fetchProjects();
+    fetchWorkplaces();
+    fetchWork();
   }, []);
 
   const [isModalVisible, setModalVisible] = useState(false);
+  const [workID, setWorkID] = useState(0);
   const [project, setProject] = useState('');
   const [workplace, setWorkplace] = useState('');
   const [startTime, setStartTime] = useState(new Date());
@@ -66,6 +129,7 @@ const WorkList = () => {
   const [endTimeOpen, setEndTimeOpen] = useState(false);
 
   const openModal = item => {
+    setWorkID(item.IDdela);
     setProject(item.projekt);
     setWorkplace(item.stroj);
     setStartTime(new Date(item.zacetni_cas));
@@ -74,12 +138,69 @@ const WorkList = () => {
   };
 
   const editWork = () => {
-    // Save changes logic here (e.g., update the item in the state or send it to a server)
+    const data = {
+      ime: user,
+      projekt: project,
+      stroj: workplace,
+      zacetni_cas: formatDateTime(startTime),
+      koncni_cas: formatDateTime(endTime),
+    };
+    console.log(workID);
+    customFetch(`work/${workID}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${userToken}`,
+      },
+      data: data,
+    })
+      .then(response => {
+        if (response.status === 204) {
+          console.log('Work was successfully edited!');
+          ToastAndroid.show(
+            'Work was successfully edited!',
+            ToastAndroid.SHORT,
+          );
+        } else {
+          ToastAndroid.show('Failed to edit work', ToastAndroid.SHORT);
+          console.log('Failed to edit work...');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        ToastAndroid.show('Failed to edit work', ToastAndroid.SHORT);
+      });
+
+    console.log(data);
     setModalVisible(false);
   };
 
   const deleteWork = () => {
-    // Save changes logic here (e.g., update the item in the state or send it to a server)
+    console.log(workID);
+    customFetch(`work/${workID}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${userToken}`,
+      },
+    })
+      .then(response => {
+        if (response.status === 204) {
+          console.log('Work was successfully deleted!');
+          ToastAndroid.show(
+            'Work was successfully deleted!',
+            ToastAndroid.SHORT,
+          );
+        } else {
+          ToastAndroid.show('Failed to delete work', ToastAndroid.SHORT);
+          console.log('Failed to delete work...');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        ToastAndroid.show('Failed to delete work', ToastAndroid.SHORT);
+      });
+
     setModalVisible(false);
   };
 
@@ -94,25 +215,12 @@ const WorkList = () => {
     );
   };
 
-  const projects = [
-    {key: '1', value: 'Intarzija', disabled: true},
-    {key: '2', value: 'Kant'},
-    {key: '3', value: 'Vezi'},
-    {key: '4', value: 'Miza', disabled: true},
-  ];
-  const workplaces = [
-    {key: '1', value: 'Brusilka', disabled: true},
-    {key: '2', value: 'Cepilka'},
-    {key: '3', value: 'Sekular'},
-    {key: '4', value: 'Formatna žaga', disabled: true},
-  ];
-
   return (
     <>
       <View style={styles.workContainer}>
         <View style={styles.rowContainer}>
           <FlatList
-            data={data}
+            data={workData}
             renderItem={({item}) => (
               <TouchableOpacity onPress={() => openModal(item)}>
                 <View style={styles.rowContainer}>
@@ -139,16 +247,16 @@ const WorkList = () => {
         onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add Work</Text>
+            <Text style={styles.modalTitle}>Edit Work</Text>
             <SelectList
               setSelected={val => setProject(val)}
-              data={projects}
+              data={projectData}
               save="value"
               boxStyles={styles.selectList}
             />
             <SelectList
               setSelected={val => setWorkplace(val)}
-              data={workplaces}
+              data={workplaceData}
               save="value"
               boxStyles={styles.selectList}
             />

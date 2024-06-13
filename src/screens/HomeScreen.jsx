@@ -1,16 +1,93 @@
 import React, {useState, useEffect} from 'react';
-import {Button, View, Text, TouchableOpacity, Modal} from 'react-native';
+import {
+  Button,
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  ToastAndroid,
+} from 'react-native';
 import {SelectList} from 'react-native-dropdown-select-list';
 import DatePicker from 'react-native-date-picker';
+import {AuthContext} from '../features/AuthContext';
 
 import RecentWork from '../components/RecentWork';
 import styles from '../styles';
+import {formatDateTime} from '../utils';
 
-import useToken from '../features/useToken';
 import {customFetch} from '../utils';
-const url = '/work';
 
 const HomeScreen = ({navigation}) => {
+  const {userToken, user} = React.useContext(AuthContext);
+
+  console.log(user);
+  console.log(userToken);
+
+  const [projectData, setProjectData] = useState();
+  const [workplaceData, setWorkplaceData] = useState();
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      customFetch
+        .get('/project', {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        })
+        .then(response => {
+          if (response.data) {
+            const projectResponse = response.data.result;
+            const filteredProjects = [
+              ...new Set(
+                projectResponse
+                  .filter(item => item.status === 1)
+                  .map(item => item.projekt),
+              ),
+            ];
+            setProjectData(filteredProjects);
+          } else {
+            ToastAndroid.show('No projects found', ToastAndroid.SHORT);
+            console.log('No projects found...');
+          }
+        })
+        .catch(error => {
+          console.log(error);
+          ToastAndroid.show('No projects found', ToastAndroid.SHORT);
+        });
+    };
+
+    const fetchWorkplaces = async () => {
+      customFetch
+        .get('/workplace', {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        })
+        .then(response => {
+          if (response.data) {
+            const workplaceResponse = response.data.result;
+            const filteredWorkplaces = [
+              ...new Set(
+                workplaceResponse
+                  .filter(item => item.status === 1)
+                  .map(item => item.stroj),
+              ),
+            ];
+            setWorkplaceData(filteredWorkplaces);
+          } else {
+            ToastAndroid.show('No workplaces found', ToastAndroid.SHORT);
+            console.log('No workplaces found...');
+          }
+        })
+        .catch(error => {
+          console.log(error);
+          ToastAndroid.show('No workplaces found', ToastAndroid.SHORT);
+        });
+    };
+    fetchProjects();
+    fetchWorkplaces();
+  }, []);
+
   const [isModalVisible, setModalVisible] = useState(false);
   const [project, setProject] = useState('');
   const [workplace, setWorkplace] = useState('');
@@ -30,21 +107,39 @@ const HomeScreen = ({navigation}) => {
 
   const addWork = () => {
     // Save changes logic here (e.g., update the item in the state or send it to a server)
+    const data = {
+      ime: user,
+      projekt: project,
+      stroj: workplace,
+      zacetni_cas: formatDateTime(startTime),
+      koncni_cas: formatDateTime(endTime),
+    };
+    customFetch('/work', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${userToken}`,
+      },
+      data: data,
+    })
+      .then(response => {
+        if (response.data) {
+          console.log(response.status);
+          console.log('Work was successfully added!');
+          ToastAndroid.show('Work was successfully added!', ToastAndroid.SHORT);
+        } else {
+          ToastAndroid.show('Failed to add work', ToastAndroid.SHORT);
+          console.log('Failed to add work...');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        ToastAndroid.show('Failed to add work', ToastAndroid.SHORT);
+      });
+
+    console.log(data);
     setModalVisible(false);
   };
-
-  const projects = [
-    {key: '1', value: 'Intarzija', disabled: true},
-    {key: '2', value: 'Kant'},
-    {key: '3', value: 'Vezi'},
-    {key: '4', value: 'Miza', disabled: true},
-  ];
-  const workplaces = [
-    {key: '1', value: 'Brusilka', disabled: true},
-    {key: '2', value: 'Cepilka'},
-    {key: '3', value: 'Sekular'},
-    {key: '4', value: 'Formatna žaga', disabled: true},
-  ];
 
   return (
     <>
@@ -62,13 +157,13 @@ const HomeScreen = ({navigation}) => {
             <Text style={styles.modalTitle}>Add Work</Text>
             <SelectList
               setSelected={val => setProject(val)}
-              data={projects}
+              data={projectData}
               save="value"
               boxStyles={styles.selectList}
             />
             <SelectList
               setSelected={val => setWorkplace(val)}
-              data={workplaces}
+              data={workplaceData}
               save="value"
               boxStyles={styles.selectList}
             />
@@ -125,6 +220,7 @@ const HomeScreen = ({navigation}) => {
           </View>
         </View>
       </Modal>
+      <RecentWork />
     </>
   );
 };

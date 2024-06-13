@@ -12,8 +12,6 @@ import {
 import styles from '../styles';
 import {customFetch} from '../utils';
 
-import useToken from '../features/useToken';
-
 const ProfileScreen = ({navigation, route}) => {
   //const {token, loading, removeToken} = useToken();
   const {signOut, userToken, user} = React.useContext(AuthContext);

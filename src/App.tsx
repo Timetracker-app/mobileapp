@@ -147,7 +147,7 @@ export default function App() {
       userToken: state.userToken,
       user: state.user,
     }),
-    [],
+    [state.userToken],
   );
 
   return (

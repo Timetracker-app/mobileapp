@@ -6,7 +6,7 @@ import {
   ToastAndroid,
   ActivityIndicator,
 } from 'react-native';
-import {useFocusEffect} from '@react-navigation/native';
+import {AuthContext} from '../features/AuthContext';
 
 import styles from '../styles';
 import {formatDate} from '../utils';
@@ -16,10 +16,10 @@ import {customFetch} from '../utils';
 const url = '/work';
 
 const RecentWork = () => {
-  const {token, user, loading} = useToken();
+  const {userToken, user} = React.useContext(AuthContext);
 
   console.log(user);
-  console.log(token);
+  console.log(userToken);
 
   const [data, setData] = useState();
 
@@ -34,12 +34,18 @@ const RecentWork = () => {
           endtime: '',
         },
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${userToken}`,
         },
       })
       .then(response => {
         if (response.data) {
-          setData(response.data.result);
+          const responseWork = response.data.result;
+          //const reversedWork = [...responseWork].reverse();
+          //const workArray = Object.entries(reversedWork);
+          //const filteredWork = new Set(workArray.slice(0, 5));
+          const recentData = [...responseWork].reverse().slice(0, 5);
+          console.log(recentData);
+          setData(recentData);
         } else {
           ToastAndroid.show('No work found', ToastAndroid.SHORT);
           console.log('No work found...');

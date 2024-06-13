@@ -26,6 +26,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 10,
     width: '100%',
+    height: '100"',
   },
   tableHeader: {
     flexDirection: 'row',
@@ -100,10 +101,10 @@ const styles = StyleSheet.create({
   logoutButton: {
     //flex: 1,
     //justifyContent: 'flex-end',
-    //backgroundColor: 'white',
+    backgroundColor: 'white',
     //padding: 100,
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 50,
   },
   profileContainer: {
     /*
@@ -113,6 +114,7 @@ const styles = StyleSheet.create({
     padding: 10,
     width: '100%',
     */
+    backgroundColor: 'white',
     flex: 1,
     justifyContent: 'space-between',
     padding: 20,
@@ -149,7 +151,7 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: 10,
   },
 });
 
