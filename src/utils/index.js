@@ -1,3 +1,11 @@
+import axios from 'axios';
+
+const testUrl = 'http://10.0.2.2:5000';
+
+export const customFetch = axios.create({
+  baseURL: testUrl,
+});
+
 export const formatDate = timestamp => {
   const date = new Date(timestamp);
 

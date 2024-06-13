@@ -1,28 +1,65 @@
-import React from 'react';
-import {Text, View, Button, FlatList} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {AuthContext} from '../features/AuthContext';
+import {
+  Text,
+  View,
+  Button,
+  FlatList,
+  ToastAndroid,
+  ActivityIndicator,
+} from 'react-native';
 
 import styles from '../styles';
+import {customFetch} from '../utils';
+
+import useToken from '../features/useToken';
 
 const ProfileScreen = ({navigation, route}) => {
+  //const {token, loading, removeToken} = useToken();
+  const {signOut, userToken, user} = React.useContext(AuthContext);
+
+  console.log(userToken);
+
+  const [userData, setUserData] = useState();
+
+  useEffect(() => {
+    customFetch(`worker/${user}`, {
+      headers: {
+        Authorization: `Bearer ${userToken}`,
+      },
+    })
+      .then(response => {
+        if (response.data) {
+          setUserData(response.data.result);
+        } else {
+          ToastAndroid.show('No data found', ToastAndroid.SHORT);
+          console.log('No data found..');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        ToastAndroid.show('Failed to load profile data...', ToastAndroid.SHORT);
+      });
+  }, []);
+
+  const handleLogout = async () => {
+    signOut();
+    removeToken();
+    //navigation.navigate('Login', {screen: 'Login'});
+  };
+
   return (
     <>
       <View style={styles.profileContainer}>
-        <View style={styles.rowContainer}>
+        <View style={styles.profileRowContainer}>
           <FlatList
-            data={[
-              {
-                key: '1',
-                name: 'Test',
-                lastName: 'Test',
-                email: 'test@gmail.com',
-              },
-            ]}
+            data={userData}
             renderItem={({item}) => {
               return (
-                <View>
-                  <Text style={styles.columnRowTxt}>{item.name}</Text>
-                  <Text style={styles.columnRowTxt}>{item.lastName}</Text>
-                  <Text style={styles.columnRowTxt}>{item.email}</Text>
+                <View style={styles.itemContainer}>
+                  <Text style={styles.profileColumnRowTxt}>{item.ime}</Text>
+                  <Text style={styles.profileColumnRowTxt}>{item.priimek}</Text>
+                  <Text style={styles.profileColumnRowTxt}>{item.email}</Text>
                 </View>
               );
             }}
@@ -36,7 +73,7 @@ const ProfileScreen = ({navigation, route}) => {
       </View>
 
       <View style={styles.logoutButton}>
-        <Button title="Sign Out" color="#ff6347" />
+        <Button title="Sign Out" color="#ff6347" onPress={signOut} />
       </View>
     </>
   );

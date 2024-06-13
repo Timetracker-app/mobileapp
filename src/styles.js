@@ -98,17 +98,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   logoutButton: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'white',
-    padding: 100,
+    //flex: 1,
+    //justifyContent: 'flex-end',
+    //backgroundColor: 'white',
+    //padding: 100,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
   profileContainer: {
+    /*
     alignItems: 'center',
     backgroundColor: 'white',
     justifyContent: 'center',
     padding: 10,
     width: '100%',
+    */
+    flex: 1,
+    justifyContent: 'space-between',
+    padding: 20,
+  },
+  profileRowContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  itemContainer: {
+    marginBottom: 10,
+  },
+  profileColumnRowTxt: {
+    fontSize: 18,
+    marginBottom: 5,
   },
   selectList: {
     width: '100%',
@@ -131,7 +149,6 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '50%',
     marginTop: 20,
   },
 });

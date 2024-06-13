@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Button, View, Text, TouchableOpacity, Modal} from 'react-native';
 import {SelectList} from 'react-native-dropdown-select-list';
 import DatePicker from 'react-native-date-picker';
@@ -6,7 +6,11 @@ import DatePicker from 'react-native-date-picker';
 import RecentWork from '../components/RecentWork';
 import styles from '../styles';
 
-const HomeScreen = () => {
+import useToken from '../features/useToken';
+import {customFetch} from '../utils';
+const url = '/work';
+
+const HomeScreen = ({navigation}) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [project, setProject] = useState('');
   const [workplace, setWorkplace] = useState('');
@@ -121,7 +125,6 @@ const HomeScreen = () => {
           </View>
         </View>
       </Modal>
-      <RecentWork />
     </>
   );
 };

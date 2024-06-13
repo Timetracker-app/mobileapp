@@ -1,57 +1,72 @@
-import React from 'react';
-import {FlatList, Text, View} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  FlatList,
+  Text,
+  View,
+  ToastAndroid,
+  ActivityIndicator,
+} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 
 import styles from '../styles';
+import {formatDate} from '../utils';
+
+import useToken from '../features/useToken';
+import {customFetch} from '../utils';
+const url = '/work';
 
 const RecentWork = () => {
+  const {token, user, loading} = useToken();
+
+  console.log(user);
+  console.log(token);
+
+  const [data, setData] = useState();
+
+  useEffect(() => {
+    customFetch
+      .get(url, {
+        params: {
+          worker: user,
+          project: '',
+          workplace: '',
+          starttime: '',
+          endtime: '',
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then(response => {
+        if (response.data) {
+          setData(response.data.result);
+        } else {
+          ToastAndroid.show('No work found', ToastAndroid.SHORT);
+          console.log('No work found...');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        ToastAndroid.show('No work found', ToastAndroid.SHORT);
+      });
+  }, []);
+
   return (
     <View style={styles.homeContainer}>
       <View style={styles.rowContainer}>
         <FlatList
-          data={[
-            {
-              key: '1',
-              project: 'Intarzija',
-              workplace: 'Brusilka',
-              starttime: '06/09/2024 08:00',
-              endtime: '06/09/2024 16:00',
-            },
-            {
-              key: '2',
-              project: 'Kant',
-              workplace: 'Poravnalka',
-              starttime: '06/07/2024 07:00',
-              endtime: '06/07/2024 15:00',
-            },
-            {
-              key: '3',
-              project: 'Vezi',
-              workplace: 'Cepilka',
-              starttime: '06/08/2024 08:00',
-              endtime: '06/08/2024 16:00',
-            },
-            {
-              key: '4',
-              project: 'Miza',
-              workplace: 'Formatna žaga',
-              starttime: '06/10/2024 08:00',
-              endtime: '06/10/2024 16:00',
-            },
-            {
-              key: '5',
-              project: 'Stopnice',
-              workplace: 'Sekular',
-              starttime: '06/11/2024 08:00',
-              endtime: '06/11/2024 16:00',
-            },
-          ]}
+          data={data}
           renderItem={({item}) => {
             return (
               <View style={styles.rowContainer}>
-                <Text style={styles.columnRowTxt}>{item.project}</Text>
-                <Text style={styles.columnRowTxt}>{item.workplace}</Text>
-                <Text style={styles.columnRowTxt}>{item.starttime}</Text>
-                <Text style={styles.columnRowTxt}>{item.endtime}</Text>
+                <Text style={styles.columnRowTxt}>{item.projekt}</Text>
+                <Text style={styles.columnRowTxt}>{item.stroj}</Text>
+                <Text style={styles.columnRowTxt}>
+                  {formatDate(item.zacetni_cas)}
+                </Text>
+                <Text style={styles.columnRowTxt}>
+                  {formatDate(item.koncni_cas)}
+                </Text>
               </View>
             );
           }}

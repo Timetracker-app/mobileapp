@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   FlatList,
   Text,
@@ -7,29 +7,69 @@ import {
   Modal,
   Button,
   TouchableOpacity,
+  ToastAndroid,
+  ActivityIndicator,
 } from 'react-native';
 import {SelectList} from 'react-native-dropdown-select-list';
 import DatePicker from 'react-native-date-picker';
 
+import styles from '../styles';
 import {formatDate} from '../utils';
 
-import styles from '../styles';
+import useToken from '../features/useToken';
+import {customFetch} from '../utils';
+const url = '/work';
 
 const WorkList = () => {
+  const {token, user, loading} = useToken();
+
+  console.log(user);
+  console.log(token);
+
+  const [data, setData] = useState();
+
+  useEffect(() => {
+    customFetch
+      .get(url, {
+        params: {
+          worker: user,
+          project: '',
+          workplace: '',
+          starttime: '',
+          endtime: '',
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then(response => {
+        if (response.data) {
+          setData(response.data.result);
+        } else {
+          ToastAndroid.show('No work found', ToastAndroid.SHORT);
+          console.log('No work found...');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        ToastAndroid.show('No work found', ToastAndroid.SHORT);
+      });
+  }, []);
+
   const [isModalVisible, setModalVisible] = useState(false);
   const [project, setProject] = useState('');
   const [workplace, setWorkplace] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [startTime, setStartTime] = useState(new Date());
+  const [endTime, setEndTime] = useState(new Date());
 
   const [startTimeOpen, setStartTimeOpen] = useState(false);
   const [endTimeOpen, setEndTimeOpen] = useState(false);
 
   const openModal = item => {
-    setProject(item.project);
-    setWorkplace(item.workplace);
-    setStartTime(item.starttime);
-    setEndTime(item.endtime);
+    setProject(item.projekt);
+    setWorkplace(item.stroj);
+    setStartTime(new Date(item.zacetni_cas));
+    setEndTime(new Date(item.koncni_cas));
     setModalVisible(true);
   };
 
@@ -72,36 +112,18 @@ const WorkList = () => {
       <View style={styles.workContainer}>
         <View style={styles.rowContainer}>
           <FlatList
-            data={[
-              {
-                key: '1',
-                project: 'Intarzija',
-                workplace: 'Brusilka',
-                starttime: '06/09/2024 08:00',
-                endtime: '06/09/2024T16:00',
-              },
-              {
-                key: '2',
-                project: 'Kant',
-                workplace: 'Poravnalka',
-                starttime: '06/07/2024 07:00',
-                endtime: '06/07/2024T15:00',
-              },
-              {
-                key: '3',
-                project: 'Vezi',
-                workplace: 'Cepilka',
-                starttime: '06/08/2024 08:00',
-                endtime: '06/08/2024T16:00',
-              },
-            ]}
+            data={data}
             renderItem={({item}) => (
               <TouchableOpacity onPress={() => openModal(item)}>
                 <View style={styles.rowContainer}>
-                  <Text style={styles.columnRowTxt}>{item.project}</Text>
-                  <Text style={styles.columnRowTxt}>{item.workplace}</Text>
-                  <Text style={styles.columnRowTxt}>{item.starttime}</Text>
-                  <Text style={styles.columnRowTxt}>{item.endtime}</Text>
+                  <Text style={styles.columnRowTxt}>{item.projekt}</Text>
+                  <Text style={styles.columnRowTxt}>{item.stroj}</Text>
+                  <Text style={styles.columnRowTxt}>
+                    {formatDate(item.zacetni_cas)}
+                  </Text>
+                  <Text style={styles.columnRowTxt}>
+                    {formatDate(item.koncni_cas)}
+                  </Text>
                 </View>
               </TouchableOpacity>
             )}
@@ -133,7 +155,21 @@ const WorkList = () => {
             <View style={styles.dateTimeRow}>
               <TouchableOpacity
                 style={styles.dateTimeButton}
-                onPress={() => setStartTimeOpen(true)}></TouchableOpacity>
+                onPress={() => setStartTimeOpen(true)}>
+                <Text>
+                  {startTime
+                    ? `${startTime.toDateString()} ${
+                        startTime
+                          .toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false,
+                          })
+                          .split(' ')[0]
+                      }`
+                    : 'Select Start DateTime'}
+                </Text>
+              </TouchableOpacity>
               <DatePicker
                 modal
                 open={startTimeOpen}
@@ -150,7 +186,21 @@ const WorkList = () => {
             <View style={styles.dateTimeRow}>
               <TouchableOpacity
                 style={styles.dateTimeButton}
-                onPress={() => setEndTimeOpen(true)}></TouchableOpacity>
+                onPress={() => setEndTimeOpen(true)}>
+                <Text>
+                  {endTime
+                    ? `${endTime.toDateString()} ${
+                        endTime
+                          .toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false,
+                          })
+                          .split(' ')[0]
+                      }`
+                    : 'Select End DateTime'}
+                </Text>
+              </TouchableOpacity>
               <DatePicker
                 modal
                 open={endTimeOpen}
