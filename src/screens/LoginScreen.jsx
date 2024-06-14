@@ -1,9 +1,10 @@
 import React, {useState} from 'react';
-import {TextInput, View, Button, ActivityIndicator} from 'react-native';
+import {TextInput, View, Button, Text} from 'react-native';
 
 import {customFetch} from '../utils';
 import useToken from '../features/useToken';
 import {AuthContext} from '../features/AuthContext';
+import styles from '../styles';
 
 const url = '/login';
 
@@ -41,16 +42,34 @@ const LoginScreen = ({navigation, route}) => {
   };
 
   return (
-    <View>
-      <TextInput placeholder="Email" value={email} onChangeText={setEmail} />
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <Button title="Sign in" onPress={() => handleLogin(email, password)} />
-    </View>
+    <>
+      <View style={styles.appTitleContainer}>
+        <Text style={styles.appTitle}>TimeTracker</Text>
+      </View>
+      <View style={styles.loginContainer}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Login</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+          <Button
+            title="Sign in"
+            onPress={() => handleLogin(email, password)}
+            color="#deb887"
+          />
+        </View>
+      </View>
+    </>
   );
 };
 

@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     backgroundColor: 'white',
-    padding: 80,
+    padding: 50,
   },
   profileContainer: {
     alignItems: 'center',
@@ -165,6 +165,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 10,
+    backgroundColor: 'white',
   },
   singleButton: {
     width: 80,
@@ -179,6 +180,22 @@ const styles = StyleSheet.create({
   singleProfileButton: {
     width: 160,
     marginHorizontal: 10,
+  },
+  loginContainer: {
+    justifyContent: 'center',
+  },
+  appTitleContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    width: '100%',
+    marginTop: 150,
+    marginBottom: 10,
+  },
+  appTitle: {
+    fontSize: 50,
+    fontWeight: 'bold',
+    color: '#deb887',
   },
 });
 

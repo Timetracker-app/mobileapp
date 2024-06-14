@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   FlatList,
   Text,
@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   ToastAndroid,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import {SelectList} from 'react-native-dropdown-select-list';
 import DatePicker from 'react-native-date-picker';
@@ -27,92 +28,96 @@ const WorkList = () => {
   const [projectData, setProjectData] = useState();
   const [workplaceData, setWorkplaceData] = useState();
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      customFetch
-        .get('/project', {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
-          },
-        })
-        .then(response => {
-          if (response.data) {
-            const projectResponse = response.data.result;
-            const filteredProjects = [
-              ...new Set(
-                projectResponse
-                  .filter(item => item.status === 1)
-                  .map(item => item.projekt),
-              ),
-            ];
-            setProjectData(filteredProjects);
-          } else {
-            ToastAndroid.show('No projects found', ToastAndroid.SHORT);
-            console.log('No projects found...');
-          }
-        })
-        .catch(error => {
-          console.log(error);
+  const fetchProjects = async () => {
+    customFetch
+      .get('/project', {
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+        },
+      })
+      .then(response => {
+        if (response.data) {
+          const projectResponse = response.data.result;
+          const filteredProjects = [
+            ...new Set(
+              projectResponse
+                .filter(item => item.status === 1)
+                .map(item => item.projekt),
+            ),
+          ];
+          setProjectData(filteredProjects);
+          console.log(filteredProjects);
+        } else {
           ToastAndroid.show('No projects found', ToastAndroid.SHORT);
-        });
-    };
+          console.log('No projects found...');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        ToastAndroid.show('No projects found', ToastAndroid.SHORT);
+      });
+  };
 
-    const fetchWorkplaces = async () => {
-      customFetch
-        .get('/workplace', {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
-          },
-        })
-        .then(response => {
-          if (response.data) {
-            const workplaceResponse = response.data.result;
-            const filteredWorkplaces = [
-              ...new Set(
-                workplaceResponse
-                  .filter(item => item.status === 1)
-                  .map(item => item.stroj),
-              ),
-            ];
-            setWorkplaceData(filteredWorkplaces);
-          } else {
-            ToastAndroid.show('No workplaces found', ToastAndroid.SHORT);
-            console.log('No workplaces found...');
-          }
-        })
-        .catch(error => {
-          console.log(error);
+  const fetchWorkplaces = async () => {
+    customFetch
+      .get('/workplace', {
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+        },
+      })
+      .then(response => {
+        if (response.data) {
+          const workplaceResponse = response.data.result;
+          const filteredWorkplaces = [
+            ...new Set(
+              workplaceResponse
+                .filter(item => item.status === 1)
+                .map(item => item.stroj),
+            ),
+          ];
+          setWorkplaceData(filteredWorkplaces);
+          console.log(filteredWorkplaces);
+        } else {
           ToastAndroid.show('No workplaces found', ToastAndroid.SHORT);
-        });
-    };
-    const fetchWork = async () => {
-      customFetch
-        .get(url, {
-          params: {
-            worker: user,
-            project: '',
-            workplace: '',
-            starttime: '',
-            endtime: '',
-          },
-          headers: {
-            Authorization: `Bearer ${userToken}`,
-          },
-        })
-        .then(response => {
-          if (response.data) {
-            const responseData = response.data.result;
-            setWorkData([...responseData].reverse());
-          } else {
-            ToastAndroid.show('No work found', ToastAndroid.SHORT);
-            console.log('No work found...');
-          }
-        })
-        .catch(error => {
-          console.log(error);
+          console.log('No workplaces found...');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        ToastAndroid.show('No workplaces found', ToastAndroid.SHORT);
+      });
+  };
+  const fetchWork = async () => {
+    customFetch
+      .get(url, {
+        params: {
+          worker: user,
+          project: '',
+          workplace: '',
+          starttime: '',
+          endtime: '',
+        },
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+        },
+      })
+      .then(response => {
+        if (response.data) {
+          const responseData = response.data.result;
+          setWorkData([...responseData].reverse());
+          console.log('HERE', responseData);
+        } else {
           ToastAndroid.show('No work found', ToastAndroid.SHORT);
-        });
-    };
+          console.log('No work found...');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        ToastAndroid.show('No work found', ToastAndroid.SHORT);
+      });
+  };
+
+  useEffect(() => {
     fetchProjects();
     fetchWorkplaces();
     fetchWork();
@@ -161,6 +166,7 @@ const WorkList = () => {
             'Work was successfully edited!',
             ToastAndroid.SHORT,
           );
+          fetchWork();
         } else {
           ToastAndroid.show('Failed to edit work', ToastAndroid.SHORT);
           console.log('Failed to edit work...');
@@ -191,6 +197,7 @@ const WorkList = () => {
             'Work was successfully deleted!',
             ToastAndroid.SHORT,
           );
+          fetchWork();
         } else {
           ToastAndroid.show('Failed to delete work', ToastAndroid.SHORT);
           console.log('Failed to delete work...');
@@ -203,6 +210,25 @@ const WorkList = () => {
 
     setModalVisible(false);
   };
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+    fetchData();
+  }, []);
+
+  const [isFilterModalVisible, setFilterModalVisible] = useState(false);
+  const [filterProject, setFilterProject] = useState('');
+  const [filterWorkplace, setFilterWorkplace] = useState('');
+  const [filterStartTime, setFilterStartTime] = useState('');
+  const [filterEndTime, setFilterEndTime] = useState('');
+
+  const [filterStartTimeOpen, setFilterStartTimeOpen] = useState(false);
+  const [filterEndTimeOpen, setFilterEndTimeOpen] = useState(false);
 
   const renderHeader = () => {
     return (
@@ -217,6 +243,18 @@ const WorkList = () => {
 
   return (
     <>
+      <View style={styles.buttonsContainer}>
+        <View style={styles.singleButton}>
+          <Button
+            title="Filter"
+            onPress={() => {
+              setFilterModalVisible(true);
+            }}
+            color="#deb887"
+          />
+        </View>
+      </View>
+
       <View style={styles.workContainer}>
         <View style={styles.rowContainer}>
           <FlatList
@@ -237,6 +275,9 @@ const WorkList = () => {
             )}
             ListHeaderComponent={renderHeader}
             keyExtractor={item => item.key}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
           />
         </View>
       </View>
@@ -310,7 +351,84 @@ const WorkList = () => {
                 <Button title="Delete" onPress={deleteWork} color="#ff6347" />
               </View>
               <View style={styles.singleButton}>
-                <Button title="Cancel" onPress={() => setModalVisible(false)} />
+                <Button
+                  title="Cancel"
+                  onPress={() => setModalVisible(false)}
+                  color="#c0c0c0"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        transparent={true}
+        animationType="slide"
+        visible={isFilterModalVisible}
+        onRequestClose={() => setFilterModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Filter Work</Text>
+            <SelectList
+              setSelected={val => setFilterProject(val)}
+              data={projectData}
+              save="value"
+              boxStyles={styles.selectList}
+            />
+            <SelectList
+              setSelected={val => setFilterWorkplace(val)}
+              data={workplaceData}
+              save="value"
+              boxStyles={styles.selectList}
+            />
+            <View style={styles.dateTimeRow}>
+              <TouchableOpacity
+                style={styles.dateTimeButton}
+                onPress={() => setFilterStartTimeOpen(true)}>
+                <Text>Select Start DateTime</Text>
+              </TouchableOpacity>
+              <DatePicker
+                modal
+                open={filterStartTimeOpen}
+                date={startTime}
+                onConfirm={date => {
+                  setFilterStartTimeOpen(false);
+                  setFilterStartTime(date);
+                }}
+                onCancel={() => {
+                  setFilterStartTimeOpen(false);
+                }}
+              />
+            </View>
+            <View style={styles.dateTimeRow}>
+              <TouchableOpacity
+                style={styles.dateTimeButton}
+                onPress={() => setFilterEndTimeOpen(true)}>
+                <Text>Select End DateTime</Text>
+              </TouchableOpacity>
+              <DatePicker
+                modal
+                open={filterEndTimeOpen}
+                date={endTime}
+                onConfirm={date => {
+                  setFilterEndTimeOpen(false);
+                  setFilterEndTime(date);
+                }}
+                onCancel={() => {
+                  setFilterEndTimeOpen(false);
+                }}
+              />
+            </View>
+            <View style={styles.buttonsContainer}>
+              <View style={styles.singleButton}>
+                <Button title="Filter" color="#deb887" />
+              </View>
+              <View style={styles.singleButton}>
+                <Button
+                  title="Cancel"
+                  onPress={() => setFilterModalVisible(false)}
+                  color="#c0c0c0"
+                />
               </View>
             </View>
           </View>

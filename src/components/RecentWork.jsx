@@ -1,10 +1,11 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   FlatList,
   Text,
   View,
   ToastAndroid,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import {AuthContext} from '../features/AuthContext';
 
@@ -23,7 +24,7 @@ const RecentWork = () => {
 
   const [data, setData] = useState();
 
-  useEffect(() => {
+  const fetchWork = async () => {
     customFetch
       .get(url, {
         params: {
@@ -40,11 +41,8 @@ const RecentWork = () => {
       .then(response => {
         if (response.data) {
           const responseWork = response.data.result;
-          //const reversedWork = [...responseWork].reverse();
-          //const workArray = Object.entries(reversedWork);
-          //const filteredWork = new Set(workArray.slice(0, 5));
           const recentData = [...responseWork].reverse().slice(0, 5);
-          console.log(recentData);
+          console.log('here', recentData);
           setData(recentData);
         } else {
           ToastAndroid.show('No work found', ToastAndroid.SHORT);
@@ -55,6 +53,20 @@ const RecentWork = () => {
         console.log(error);
         ToastAndroid.show('No work found', ToastAndroid.SHORT);
       });
+  };
+
+  useEffect(() => {
+    fetchWork();
+  }, []);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+    fetchWork();
   }, []);
 
   return (
@@ -77,6 +89,9 @@ const RecentWork = () => {
             );
           }}
           keyExtractor={item => item.key}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       </View>
     </View>

@@ -106,44 +106,52 @@ const HomeScreen = ({navigation}) => {
   };
 
   const addWork = () => {
-    const data = {
-      ime: user,
-      projekt: project,
-      stroj: workplace,
-      zacetni_cas: formatDateTime(startTime),
-      koncni_cas: formatDateTime(endTime),
-    };
-    customFetch('/work', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${userToken}`,
-      },
-      data: data,
-    })
-      .then(response => {
-        if (response.data) {
-          console.log(response.status);
-          console.log('Work was successfully added!');
-          ToastAndroid.show('Work was successfully added!', ToastAndroid.SHORT);
-        } else {
-          ToastAndroid.show('Failed to add work', ToastAndroid.SHORT);
-          console.log('Failed to add work...');
-        }
+    if (startTime !== (null || undefined)) {
+      const data = {
+        ime: user,
+        projekt: project,
+        stroj: workplace,
+        zacetni_cas: formatDateTime(startTime),
+        koncni_cas: formatDateTime(endTime),
+      };
+      customFetch('/work', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userToken}`,
+        },
+        data: data,
       })
-      .catch(error => {
-        console.log(error);
-        ToastAndroid.show('Failed to add work', ToastAndroid.SHORT);
-      });
+        .then(response => {
+          if (response.data) {
+            console.log(response.status);
+            console.log('Work was successfully added!');
+            ToastAndroid.show(
+              'Work was successfully added!',
+              ToastAndroid.SHORT,
+            );
+            setModalVisible(false);
+          } else {
+            ToastAndroid.show('Failed to add work', ToastAndroid.SHORT);
+            console.log('Failed to add work...');
+          }
+        })
+        .catch(error => {
+          console.log(error);
+          ToastAndroid.show('Failed to add work', ToastAndroid.SHORT);
+        });
 
-    console.log(data);
-    setModalVisible(false);
+      console.log(data);
+    } else {
+      ToastAndroid.show('Wrong input. Failed to add work.', ToastAndroid.SHORT);
+      console.log('Wrong input. Failed to add work.');
+    }
   };
 
   return (
     <>
       <View style={styles.startWorkButton}>
-        <Button title="Start New Work" onPress={openModal} color="#deb887" />
+        <Button title="Add New Work" onPress={openModal} color="#deb887" />
       </View>
 
       <Modal
@@ -220,11 +228,7 @@ const HomeScreen = ({navigation}) => {
                 <Button
                   title="Cancel"
                   onPress={() => setModalVisible(false)}
-                  titleStyle={{
-                    color: '#000000',
-                    fontSize: 30,
-                    fontStyle: 'italic',
-                  }}
+                  color="#c0c0c0"
                 />
               </View>
             </View>

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {AuthContext} from '../features/AuthContext';
 import {
   Text,
@@ -6,7 +6,7 @@ import {
   Button,
   FlatList,
   ToastAndroid,
-  ActivityIndicator,
+  RefreshControl,
   TextInput,
   Modal,
 } from 'react-native';
@@ -19,7 +19,7 @@ const ProfileScreen = ({navigation, route}) => {
 
   const [userData, setUserData] = useState('');
 
-  useEffect(() => {
+  const fetchData = () => {
     customFetch(`worker/${user}`, {
       headers: {
         Authorization: `Bearer ${userToken}`,
@@ -39,6 +39,10 @@ const ProfileScreen = ({navigation, route}) => {
         console.log(error);
         ToastAndroid.show('Failed to load profile data...', ToastAndroid.SHORT);
       });
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
@@ -74,6 +78,7 @@ const ProfileScreen = ({navigation, route}) => {
             'Profile was successfully edited!',
             ToastAndroid.SHORT,
           );
+          fetchData();
         } else {
           ToastAndroid.show('Failed to edit profile', ToastAndroid.SHORT);
           console.log('Failed to edit profile...');
@@ -130,6 +135,16 @@ const ProfileScreen = ({navigation, route}) => {
     console.log(data);
   };
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+    fetchData();
+  }, []);
+
   return (
     <>
       <View style={styles.profileContainer}>
@@ -159,6 +174,9 @@ const ProfileScreen = ({navigation, route}) => {
               );
             }}
             keyExtractor={item => item.key}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
           />
         </View>
         <View style={styles.buttonsProfileContainer}>
@@ -215,6 +233,7 @@ const ProfileScreen = ({navigation, route}) => {
                 <Button
                   title="Cancel"
                   onPress={() => setProfileModalVisible(false)}
+                  color="#c0c0c0"
                 />
               </View>
             </View>
@@ -259,6 +278,7 @@ const ProfileScreen = ({navigation, route}) => {
                 <Button
                   title="Cancel"
                   onPress={() => setPassModalVisible(false)}
+                  color="#c0c0c0"
                 />
               </View>
             </View>
