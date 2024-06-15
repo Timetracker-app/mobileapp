@@ -1,5 +1,9 @@
 ## TimeTracker - mobile application
 
+**Technologies and tools:**
+
+- React Native
+
 ### Setup:
 
 ```bash
