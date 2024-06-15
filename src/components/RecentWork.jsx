@@ -1,18 +1,10 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import {
-  FlatList,
-  Text,
-  View,
-  ToastAndroid,
-  ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+import {FlatList, Text, View, ToastAndroid, RefreshControl} from 'react-native';
 import {AuthContext} from '../features/AuthContext';
 
 import styles from '../styles';
 import {formatDate} from '../utils';
 
-import useToken from '../features/useToken';
 import {customFetch} from '../utils';
 const url = '/work';
 

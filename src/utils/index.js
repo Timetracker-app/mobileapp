@@ -21,6 +21,18 @@ export const formatDate = timestamp => {
   return formattedDate;
 };
 
+export const formatFilterDate = timestamp => {
+  const date = new Date(timestamp);
+
+  const formattedDate = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date);
+
+  return formattedDate;
+};
+
 export const formatDateTime = datetime => {
   const date = new Date(datetime);
 
@@ -37,16 +49,15 @@ export const formatDateTime = datetime => {
   return `${formattedDate}T${formattedTime}`;
 };
 
-export const timeDiff = (zacetni_cas, koncni_cas) => {
-  const t1 = new Date(zacetni_cas);
-  const t2 = new Date(koncni_cas);
-  const diff = t2.getTime() - t1.getTime();
+export const formatFilterDateTime = datetime => {
+  console.log(datetime);
+  const date = new Date(datetime);
 
-  const optionsTime = {hour: '2-digit', minute: '2-digit', hour12: false};
+  const optionsDate = {year: 'numeric', month: '2-digit', day: '2-digit'};
 
-  const formattedTime = new Intl.DateTimeFormat('en-GB', optionsTime).format(
-    diff,
-  );
+  const formattedDate = new Intl.DateTimeFormat('en-CA', optionsDate).format(
+    date,
+  ); // 'en-CA' ensures the format YYYY-MM-DD
 
-  return `${formattedTime}`;
+  return `${formattedDate}`;
 };

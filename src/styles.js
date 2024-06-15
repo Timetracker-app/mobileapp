@@ -100,21 +100,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   logoutButton: {
-    //flex: 1,
-    //justifyContent: 'flex-end',
     backgroundColor: 'white',
-    //padding: 100,
+
     paddingHorizontal: 20,
     paddingVertical: 50,
   },
   profileContainer: {
-    /*
-    alignItems: 'center',
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    padding: 10,
-    width: '100%',
-    */
     backgroundColor: 'white',
     flex: 1,
     justifyContent: 'space-between',
@@ -196,6 +187,14 @@ const styles = StyleSheet.create({
     fontSize: 50,
     fontWeight: 'bold',
     color: '#deb887',
+  },
+  filterButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    backgroundColor: 'white',
+  },
+  deleteModalContent: {
+    marginBottom: 20,
   },
 });
 

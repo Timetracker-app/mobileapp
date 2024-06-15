@@ -1,16 +1,13 @@
 import React, {useState} from 'react';
-import {TextInput, View, Button, Text} from 'react-native';
+import {TextInput, View, Button, Text, ToastAndroid} from 'react-native';
 
 import {customFetch} from '../utils';
-import useToken from '../features/useToken';
 import {AuthContext} from '../features/AuthContext';
 import styles from '../styles';
 
 const url = '/login';
 
 const LoginScreen = ({navigation, route}) => {
-  //const {setToken, loading} = useToken();
-
   const {signIn} = React.useContext(AuthContext);
 
   const [email, setEmail] = useState('');
@@ -26,12 +23,12 @@ const LoginScreen = ({navigation, route}) => {
       });
       console.log(response.data);
       const token = JSON.stringify(response.data);
-      //setToken(token);
       signIn(token);
       return null;
     } catch (error) {
       if (error?.response?.status === 401) {
         console.log(error?.response?.data);
+        ToastAndroid.show('Wrong credentials!', ToastAndroid.SHORT);
       } else if (error?.response?.data?.error?.message) {
         console.log(error?.response?.data?.error?.message);
       } else {
@@ -63,7 +60,7 @@ const LoginScreen = ({navigation, route}) => {
             secureTextEntry
           />
           <Button
-            title="Sign in"
+            title="Login"
             onPress={() => handleLogin(email, password)}
             color="#deb887"
           />

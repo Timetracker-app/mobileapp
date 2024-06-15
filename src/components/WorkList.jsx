@@ -2,13 +2,11 @@ import React, {useState, useEffect, useCallback} from 'react';
 import {
   FlatList,
   Text,
-  TextInput,
   View,
   Modal,
   Button,
   TouchableOpacity,
   ToastAndroid,
-  ActivityIndicator,
   RefreshControl,
 } from 'react-native';
 import {SelectList} from 'react-native-dropdown-select-list';
@@ -16,7 +14,12 @@ import DatePicker from 'react-native-date-picker';
 import {AuthContext} from '../features/AuthContext';
 
 import styles from '../styles';
-import {formatDate, formatDateTime} from '../utils';
+import {
+  formatDate,
+  formatDateTime,
+  formatFilterDateTime,
+  formatFilterDate,
+} from '../utils';
 
 import {customFetch} from '../utils';
 const url = '/work';
@@ -87,16 +90,10 @@ const WorkList = () => {
         ToastAndroid.show('No workplaces found', ToastAndroid.SHORT);
       });
   };
-  const fetchWork = async () => {
+  const fetchWork = async (data, _) => {
     customFetch
       .get(url, {
-        params: {
-          worker: user,
-          project: '',
-          workplace: '',
-          starttime: '',
-          endtime: '',
-        },
+        params: data,
         headers: {
           Authorization: `Bearer ${userToken}`,
         },
@@ -105,7 +102,7 @@ const WorkList = () => {
         if (response.data) {
           const responseData = response.data.result;
           setWorkData([...responseData].reverse());
-          console.log('HERE', responseData);
+          console.log(responseData);
         } else {
           ToastAndroid.show('No work found', ToastAndroid.SHORT);
           console.log('No work found...');
@@ -120,7 +117,13 @@ const WorkList = () => {
   useEffect(() => {
     fetchProjects();
     fetchWorkplaces();
-    fetchWork();
+    fetchWork({
+      worker: user,
+      project: '',
+      workplace: '',
+      starttime: '',
+      endtime: '',
+    });
   }, []);
 
   const [isModalVisible, setModalVisible] = useState(false);
@@ -151,35 +154,52 @@ const WorkList = () => {
       koncni_cas: formatDateTime(endTime),
     };
     console.log(workID);
-    customFetch(`work/${workID}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${userToken}`,
-      },
-      data: data,
-    })
-      .then(response => {
-        if (response.status === 204) {
-          console.log('Work was successfully edited!');
-          ToastAndroid.show(
-            'Work was successfully edited!',
-            ToastAndroid.SHORT,
-          );
-          fetchWork();
-        } else {
-          ToastAndroid.show('Failed to edit work', ToastAndroid.SHORT);
-          console.log('Failed to edit work...');
-        }
-      })
-      .catch(error => {
-        console.log(error);
-        ToastAndroid.show('Failed to edit work', ToastAndroid.SHORT);
-      });
+    const t1 = new Date(data.zacetni_cas);
+    const t2 = new Date(data.koncni_cas);
+    const diff = t2.getTime() - t1.getTime();
 
-    console.log(data);
-    setModalVisible(false);
+    if (diff > 0 && diff < 86400000) {
+      customFetch(`work/${workID}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userToken}`,
+        },
+        data: data,
+      })
+        .then(response => {
+          if (response.status === 204) {
+            console.log('Work was successfully edited!');
+            ToastAndroid.show(
+              'Work was successfully edited!',
+              ToastAndroid.SHORT,
+            );
+            fetchWork({
+              worker: user,
+              project: '',
+              workplace: '',
+              starttime: '',
+              endtime: '',
+            });
+          } else {
+            ToastAndroid.show('Failed to edit work', ToastAndroid.SHORT);
+            console.log('Failed to edit work...');
+          }
+        })
+        .catch(error => {
+          console.log(error);
+          ToastAndroid.show('Failed to edit work', ToastAndroid.SHORT);
+        });
+
+      console.log(data);
+      setModalVisible(false);
+    } else {
+      console.log('Invalid datetime!');
+      ToastAndroid.show('Invalid datetime!', ToastAndroid.SHORT);
+    }
   };
+
+  const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
 
   const deleteWork = () => {
     console.log(workID);
@@ -197,7 +217,13 @@ const WorkList = () => {
             'Work was successfully deleted!',
             ToastAndroid.SHORT,
           );
-          fetchWork();
+          fetchWork({
+            worker: user,
+            project: '',
+            workplace: '',
+            starttime: '',
+            endtime: '',
+          });
         } else {
           ToastAndroid.show('Failed to delete work', ToastAndroid.SHORT);
           console.log('Failed to delete work...');
@@ -209,17 +235,8 @@ const WorkList = () => {
       });
 
     setModalVisible(false);
+    setDeleteModalVisible(false);
   };
-
-  const [refreshing, setRefreshing] = useState(false);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-    fetchData();
-  }, []);
 
   const [isFilterModalVisible, setFilterModalVisible] = useState(false);
   const [filterProject, setFilterProject] = useState('');
@@ -229,6 +246,54 @@ const WorkList = () => {
 
   const [filterStartTimeOpen, setFilterStartTimeOpen] = useState(false);
   const [filterEndTimeOpen, setFilterEndTimeOpen] = useState(false);
+
+  const handleFilter = async () => {
+    const data = {
+      worker: user,
+      project: filterProject,
+      workplace: filterWorkplace,
+      starttime:
+        filterStartTime === ''
+          ? filterStartTime
+          : formatFilterDateTime(filterStartTime),
+      endtime:
+        filterEndTime === ''
+          ? filterEndTime
+          : formatFilterDateTime(filterEndTime),
+    };
+
+    fetchWork(data);
+    console.log(data);
+    setFilterStartTime('');
+    setFilterEndTime('');
+    setFilterProject('');
+    setFilterWorkplace('');
+    setFilterModalVisible(false);
+  };
+
+  const handleCancelFilter = () => {
+    setFilterStartTime('');
+    setFilterEndTime('');
+    setFilterProject('');
+    setFilterWorkplace('');
+    setFilterModalVisible(false);
+  };
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+    fetchWork({
+      worker: user,
+      project: '',
+      workplace: '',
+      starttime: '',
+      endtime: '',
+    });
+  }, []);
 
   const renderHeader = () => {
     return (
@@ -243,7 +308,7 @@ const WorkList = () => {
 
   return (
     <>
-      <View style={styles.buttonsContainer}>
+      <View style={styles.filterButtonContainer}>
         <View style={styles.singleButton}>
           <Button
             title="Filter"
@@ -294,12 +359,16 @@ const WorkList = () => {
               data={projectData}
               save="value"
               boxStyles={styles.selectList}
+              placeholder="Select Project"
+              search={false}
             />
             <SelectList
               setSelected={val => setWorkplace(val)}
               data={workplaceData}
               save="value"
               boxStyles={styles.selectList}
+              placeholder="Select Workplace"
+              search={false}
             />
             <View style={styles.dateTimeRow}>
               <TouchableOpacity
@@ -320,6 +389,8 @@ const WorkList = () => {
                 onCancel={() => {
                   setStartTimeOpen(false);
                 }}
+                buttonColor="#deb887"
+                dividerColor="#deb887"
               />
             </View>
             <View style={styles.dateTimeRow}>
@@ -341,6 +412,8 @@ const WorkList = () => {
                 onCancel={() => {
                   setEndTimeOpen(false);
                 }}
+                buttonColor="#deb887"
+                dividerColor="#deb887"
               />
             </View>
             <View style={styles.buttonsContainer}>
@@ -348,12 +421,46 @@ const WorkList = () => {
                 <Button title="Edit" onPress={editWork} color="#deb887" />
               </View>
               <View style={styles.singleButton}>
-                <Button title="Delete" onPress={deleteWork} color="#ff6347" />
+                <Button
+                  title="Delete"
+                  onPress={() => {
+                    setDeleteModalVisible(true);
+                  }}
+                  color="#ff6347"
+                />
               </View>
               <View style={styles.singleButton}>
                 <Button
                   title="Cancel"
                   onPress={() => setModalVisible(false)}
+                  color="#c0c0c0"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        transparent={true}
+        animationType="slide"
+        visible={isDeleteModalVisible}
+        onRequestClose={() => setDeleteModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Warning</Text>
+            <Text style={styles.deleteModalContent}>
+              Are you sure you want to delete this work?
+            </Text>
+            <View style={styles.buttonsContainer}>
+              <View style={styles.singleButton}>
+                <Button title="Delete" color="#ff6347" onPress={deleteWork} />
+              </View>
+              <View style={styles.singleButton}>
+                <Button
+                  title="Cancel"
+                  onPress={() => {
+                    setDeleteModalVisible(false);
+                  }}
                   color="#c0c0c0"
                 />
               </View>
@@ -374,21 +481,30 @@ const WorkList = () => {
               data={projectData}
               save="value"
               boxStyles={styles.selectList}
+              placeholder="Select Project"
+              search={false}
             />
             <SelectList
               setSelected={val => setFilterWorkplace(val)}
               data={workplaceData}
               save="value"
               boxStyles={styles.selectList}
+              placeholder="Select Workplace"
+              search={false}
             />
             <View style={styles.dateTimeRow}>
               <TouchableOpacity
                 style={styles.dateTimeButton}
                 onPress={() => setFilterStartTimeOpen(true)}>
-                <Text>Select Start DateTime</Text>
+                <Text>
+                  {filterStartTime !== ''
+                    ? formatFilterDate(filterStartTime)
+                    : 'Select Start Date'}
+                </Text>
               </TouchableOpacity>
               <DatePicker
                 modal
+                mode="date"
                 open={filterStartTimeOpen}
                 date={startTime}
                 onConfirm={date => {
@@ -398,15 +514,22 @@ const WorkList = () => {
                 onCancel={() => {
                   setFilterStartTimeOpen(false);
                 }}
+                buttonColor="#deb887"
+                dividerColor="#deb887"
               />
             </View>
             <View style={styles.dateTimeRow}>
               <TouchableOpacity
                 style={styles.dateTimeButton}
                 onPress={() => setFilterEndTimeOpen(true)}>
-                <Text>Select End DateTime</Text>
+                <Text>
+                  {filterEndTime !== ''
+                    ? formatFilterDate(filterEndTime)
+                    : 'Select End Date'}
+                </Text>
               </TouchableOpacity>
               <DatePicker
+                mode="date"
                 modal
                 open={filterEndTimeOpen}
                 date={endTime}
@@ -417,16 +540,18 @@ const WorkList = () => {
                 onCancel={() => {
                   setFilterEndTimeOpen(false);
                 }}
+                buttonColor="#deb887"
+                dividerColor="#deb887"
               />
             </View>
             <View style={styles.buttonsContainer}>
               <View style={styles.singleButton}>
-                <Button title="Filter" color="#deb887" />
+                <Button title="Filter" color="#deb887" onPress={handleFilter} />
               </View>
               <View style={styles.singleButton}>
                 <Button
                   title="Cancel"
-                  onPress={() => setFilterModalVisible(false)}
+                  onPress={handleCancelFilter}
                   color="#c0c0c0"
                 />
               </View>

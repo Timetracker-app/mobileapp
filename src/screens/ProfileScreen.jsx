@@ -115,17 +115,19 @@ const ProfileScreen = ({navigation, route}) => {
               ToastAndroid.SHORT,
             );
             setPassModalVisible(false);
-          } else if (response.status === 401) {
-            ToastAndroid.show('Wrong password!', ToastAndroid.SHORT);
-            console.log('Wrong password');
           } else {
             console.log('Failed to change password');
             ToastAndroid.show('Failed to change password', ToastAndroid.SHORT);
           }
         })
         .catch(error => {
-          console.log(error);
-          ToastAndroid.show('Failed to change password', ToastAndroid.SHORT);
+          if (error.response.status === 401) {
+            ToastAndroid.show('Wrong password!', ToastAndroid.SHORT);
+            console.log('Wrong password');
+          } else {
+            console.log(error);
+            ToastAndroid.show('Failed to change password', ToastAndroid.SHORT);
+          }
         });
     } else {
       ToastAndroid.show('Passwords do not match!', ToastAndroid.SHORT);
@@ -197,7 +199,7 @@ const ProfileScreen = ({navigation, route}) => {
         </View>
       </View>
       <View style={styles.logoutButton}>
-        <Button title="Sign Out" color="#ff6347" onPress={signOut} />
+        <Button title="Log Out" color="#ff6347" onPress={signOut} />
       </View>
       <Modal
         transparent={true}
@@ -216,7 +218,6 @@ const ProfileScreen = ({navigation, route}) => {
               style={styles.input}
               onChangeText={setLastName}
               defaultValue={userData[0]?.priimek}
-              //value={lastName}
             />
             <TextInput
               style={styles.input}

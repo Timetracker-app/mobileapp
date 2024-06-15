@@ -1,5 +1,4 @@
 import * as React from 'react';
-import {ActivityIndicator} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -11,51 +10,8 @@ import ProfileScreen from './screens/ProfileScreen';
 import WorkScreen from './screens/WorkScreen';
 import LoginScreen from './screens/LoginScreen';
 
-import useToken from './features/useToken';
-
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
-
-/*
-const App = () => {
-  const {token, loading} = useToken();
-  //console.log(token);
-
-  useEffect(() => {
-    if (token) {
-      console.log('Token:', token);
-    }
-  }, [token]);
-
-  if (loading) {
-    return <ActivityIndicator />;
-  }
-
-  function MainTabNavigator() {
-    return (
-      <Tab.Navigator>
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Work" component={WorkScreen} />
-        <Tab.Screen name="Profile" component={ProfileScreen} />
-      </Tab.Navigator>
-    );
-  }
-
-  return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{headerShown: false}}>
-        {token === null ? (
-          <Stack.Screen name="Login" component={LoginScreen} />
-        ) : (
-          <Stack.Screen name="Main" component={MainTabNavigator} />
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-};
-
-export default App;
-*/
 
 import {AuthContext} from './features/AuthContext';
 
@@ -116,7 +72,6 @@ export default function App() {
           user = credentials.username;
         }
       } catch (e) {
-        // Restoring token failed
         console.log('Restoring token failed..');
       }
       dispatch({type: 'RESTORE_TOKEN', token: userToken, user: user});
@@ -128,7 +83,6 @@ export default function App() {
   const authContext = React.useMemo(
     () => ({
       signIn: async data => {
-        // Replace with actual sign-in logic and token retrieval
         const parsedData = JSON.parse(data);
 
         const token = parsedData.token;
@@ -154,7 +108,7 @@ export default function App() {
     <AuthContext.Provider value={authContext}>
       <NavigationContainer>
         <Stack.Navigator screenOptions={{headerShown: false}}>
-          {state.userToken === (null || undefined) ? (
+          {state.userToken === null || state.userToken === undefined ? (
             <Stack.Screen name="Login" component={LoginScreen} />
           ) : (
             <Stack.Screen name="Main" component={MainTabNavigator} />
